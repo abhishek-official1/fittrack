@@ -1,0 +1,175 @@
+'use client'
+
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { 
+  Dumbbell, 
+  Calendar, 
+  BarChart3, 
+  User, 
+  Menu, 
+  X, 
+  Moon, 
+  Sun,
+  LogOut,
+  BookTemplate
+} from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+
+interface HeaderProps {
+  user?: {
+    name: string
+    email: string
+  } | null
+}
+
+const navItems = [
+  { href: '/dashboard', label: 'Dashboard', icon: BarChart3 },
+  { href: '/workouts', label: 'Workouts', icon: Dumbbell },
+  { href: '/calendar', label: 'Calendar', icon: Calendar },
+  { href: '/templates', label: 'Templates', icon: BookTemplate },
+  { href: '/exercises', label: 'Exercises', icon: Dumbbell },
+  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+]
+
+export function Header({ user }: HeaderProps) {
+  const pathname = usePathname()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    const isDarkMode = document.documentElement.classList.contains('dark')
+    setIsDark(isDarkMode)
+  }, [])
+
+  const toggleDarkMode = () => {
+    const newIsDark = !isDark
+    setIsDark(newIsDark)
+    if (newIsDark) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+      window.location.href = '/auth/login'
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between px-4">
+        <div className="flex items-center gap-6">
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <Dumbbell className="h-6 w-6 text-primary" />
+            <span className="hidden font-bold sm:inline-block">FitTrack</span>
+          </Link>
+
+          {user && (
+            <nav className="hidden md:flex items-center gap-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    'flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                    pathname === item.href
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleDarkMode}
+            aria-label="Toggle theme"
+          >
+            {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
+
+          {user ? (
+            <>
+              <Link href="/profile">
+                <Button variant="ghost" size="icon" aria-label="Profile">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                aria-label="Logout"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="Toggle menu"
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
+              </Button>
+            </>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link href="/auth/login">
+                <Button variant="ghost">Login</Button>
+              </Link>
+              <Link href="/auth/signup">
+                <Button>Get Started</Button>
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      {user && mobileMenuOpen && (
+        <div className="md:hidden border-t bg-background">
+          <nav className="flex flex-col p-4 gap-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                  pathname === item.href
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      )}
+    </header>
+  )
+}

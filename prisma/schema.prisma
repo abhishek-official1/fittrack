@@ -1,0 +1,232 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Used for migrations in serverless
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  passwordHash   String
+  name           String
+  avatarUrl      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  
+  profile        UserProfile?
+  workouts       Workout[]
+  exercises      Exercise[]
+  templates      WorkoutTemplate[]
+  personalRecords PersonalRecord[]
+  nutritionLogs  NutritionLog[]
+  
+  @@map("users")
+}
+
+model UserProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  fitnessGoal       String   @default("general") // strength, hypertrophy, endurance, fat_loss, general
+  experienceLevel   String   @default("beginner") // beginner, intermediate, advanced
+  weight            Float?   // in kg
+  height            Float?   // in cm
+  birthDate         DateTime?
+  gender            String?
+  preferredUnits    String   @default("metric") // metric, imperial
+  weeklyGoal        Int      @default(3) // workouts per week
+  restDayReminder   Boolean  @default(true)
+  workoutReminder   Boolean  @default(true)
+  reminderTime      String?  // HH:MM format
+  timezone          String   @default("UTC")
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@map("user_profiles")
+}
+
+model Exercise {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  muscleGroup     String   // chest, back, shoulders, biceps, triceps, legs, core, cardio, full_body
+  category        String   // compound, isolation, bodyweight, cardio, stretching
+  equipment       String?  // barbell, dumbbell, cable, machine, bodyweight, kettlebell, bands
+  instructions    String?
+  isCustom        Boolean  @default(false)
+  isPublic        Boolean  @default(false)
+  
+  userId          String?  // null for system exercises
+  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  workoutExercises WorkoutExercise[]
+  templateExercises TemplateExercise[]
+  personalRecords PersonalRecord[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([name, userId])
+  @@map("exercises")
+}
+
+model Workout {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name            String
+  date            DateTime
+  startTime       DateTime?
+  endTime         DateTime?
+  duration        Int?     // in minutes
+  notes           String?
+  status          String   @default("planned") // planned, in_progress, completed, cancelled
+  rating          Int?     // 1-5 user satisfaction rating
+  perceivedEffort Int?     // 1-10 RPE scale
+  
+  templateId      String?
+  template        WorkoutTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  
+  exercises       WorkoutExercise[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([userId, date])
+  @@map("workouts")
+}
+
+model WorkoutExercise {
+  id              String   @id @default(uuid())
+  workoutId       String
+  workout         Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exerciseId      String
+  exercise        Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  
+  order           Int
+  notes           String?
+  
+  sets            ExerciseSet[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([workoutId])
+  @@map("workout_exercises")
+}
+
+model ExerciseSet {
+  id                  String   @id @default(uuid())
+  workoutExerciseId   String
+  workoutExercise     WorkoutExercise @relation(fields: [workoutExerciseId], references: [id], onDelete: Cascade)
+  
+  setNumber           Int
+  setType             String   @default("working") // warmup, working, dropset, failure, rest_pause
+  targetReps          Int?
+  actualReps          Int?
+  weight              Float?   // in kg or lbs based on user preference
+  duration            Int?     // in seconds for timed exercises
+  distance            Float?   // for cardio
+  restTime            Int?     // in seconds
+  rpe                 Int?     // 1-10 rating of perceived exertion
+  isCompleted         Boolean  @default(false)
+  isPR                Boolean  @default(false)
+  notes               String?
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  @@index([workoutExerciseId])
+  @@map("exercise_sets")
+}
+
+model WorkoutTemplate {
+  id              String   @id @default(uuid())
+  userId          String?  // null for system templates
+  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name            String
+  description     String?
+  category        String   @default("custom") // push_pull_legs, upper_lower, full_body, bro_split, custom
+  targetMuscles   String?  // comma-separated muscle groups
+  estimatedDuration Int?   // in minutes
+  difficulty      String   @default("intermediate") // beginner, intermediate, advanced
+  isPublic        Boolean  @default(false)
+  
+  exercises       TemplateExercise[]
+  workouts        Workout[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("workout_templates")
+}
+
+model TemplateExercise {
+  id              String   @id @default(uuid())
+  templateId      String
+  template        WorkoutTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  exerciseId      String
+  exercise        Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  
+  order           Int
+  sets            Int      @default(3)
+  targetReps      String?  // can be range like "8-12"
+  targetWeight    Float?
+  restTime        Int?     // in seconds
+  notes           String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([templateId])
+  @@map("template_exercises")
+}
+
+model PersonalRecord {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exerciseId      String
+  exercise        Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  
+  recordType      String   // max_weight, max_reps, max_volume, best_time
+  value           Float
+  reps            Int?
+  weight          Float?
+  date            DateTime
+  notes           String?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([userId, exerciseId])
+  @@map("personal_records")
+}
+
+model NutritionLog {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  date            DateTime
+  mealType        String?  // breakfast, lunch, dinner, snack
+  calories        Int?
+  protein         Float?   // in grams
+  carbs           Float?   // in grams
+  fat             Float?   // in grams
+  fiber           Float?   // in grams
+  notes           String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([userId, date])
+  @@map("nutrition_logs")
+}
