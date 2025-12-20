@@ -81,15 +81,15 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4">
+      <div className="container flex h-14 md:h-16 items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <Link href="/dashboard" className="flex items-center gap-2">
             <Dumbbell className="h-6 w-6 text-primary" />
-            <span className="hidden font-bold sm:inline-block">FitTrack</span>
+            <span className="font-bold">FitTrack</span>
           </Link>
 
           {user && (
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-1">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
@@ -109,20 +109,21 @@ export function Header() {
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleDarkMode}
             aria-label="Toggle theme"
+            className="h-10 w-10"
           >
             {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
 
           {user ? (
             <>
-              <Link href="/profile">
-                <Button variant="ghost" size="icon" aria-label="Profile">
+              <Link href="/profile" className="hidden md:block">
+                <Button variant="ghost" size="icon" aria-label="Profile" className="h-10 w-10">
                   <User className="h-5 w-5" />
                 </Button>
               </Link>
@@ -131,13 +132,14 @@ export function Header() {
                 size="icon"
                 onClick={handleLogout}
                 aria-label="Logout"
+                className="hidden md:flex h-10 w-10"
               >
                 <LogOut className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden"
+                className="hidden md:flex lg:hidden h-10 w-10"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label="Toggle menu"
               >
@@ -151,19 +153,19 @@ export function Header() {
           ) : (
             <div className="flex items-center gap-2">
               <Link href="/auth/login">
-                <Button variant="ghost">Login</Button>
+                <Button variant="ghost" size="sm">Login</Button>
               </Link>
-              <Link href="/auth/signup">
-                <Button>Get Started</Button>
+              <Link href="/auth/signup" className="hidden sm:block">
+                <Button size="sm">Get Started</Button>
               </Link>
             </div>
           )}
         </div>
       </div>
 
-      {/* Mobile Navigation */}
+      {/* Tablet Navigation Menu */}
       {user && mobileMenuOpen && (
-        <div className="md:hidden border-t bg-background">
+        <div className="hidden md:block lg:hidden border-t bg-background">
           <nav className="flex flex-col p-4 gap-1">
             {navItems.map((item) => (
               <Link
@@ -171,7 +173,7 @@ export function Header() {
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                  'flex items-center gap-3 px-3 py-3 text-sm font-medium rounded-md transition-colors min-h-[44px]',
                   pathname === item.href
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
