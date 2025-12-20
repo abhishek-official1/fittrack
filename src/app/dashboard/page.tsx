@@ -20,6 +20,9 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatDate, formatDuration, formatWeight } from '@/lib/utils'
+import { StreakWidget } from '@/components/gamification/StreakWidget'
+import { RecentAchievements } from '@/components/gamification/RecentAchievements'
+import { LevelBadge } from '@/components/gamification/LevelBadge'
 import type { Workout, User } from '@/types'
 
 interface Analytics {
@@ -49,20 +52,41 @@ interface Analytics {
   }>
 }
 
+interface UserStats {
+  totalXP: number
+  level: number
+  levelTitle: string
+  xpProgress: number
+  currentStreak: number
+  longestStreak: number
+  totalWorkouts: number
+  totalPRs: number
+  recentAchievements: Array<{
+    id: string
+    name: string
+    description: string
+    rarity: string
+    xpReward: number
+    unlockedAt: string
+  }>
+}
+
 export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [analytics, setAnalytics] = useState<Analytics | null>(null)
+  const [userStats, setUserStats] = useState<UserStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [userRes, workoutsRes, analyticsRes] = await Promise.all([
+        const [userRes, workoutsRes, analyticsRes, statsRes] = await Promise.all([
           fetch('/api/auth/me'),
           fetch('/api/workouts?limit=5'),
-          fetch('/api/analytics?period=30')
+          fetch('/api/analytics?period=30'),
+          fetch('/api/user/stats')
         ])
 
         const userData = await userRes.json()
@@ -80,6 +104,11 @@ export default function DashboardPage() {
         const analyticsData = await analyticsRes.json()
         if (analyticsData.success) {
           setAnalytics(analyticsData.data)
+        }
+
+        const statsData = await statsRes.json()
+        if (statsData.success) {
+          setUserStats(statsData.data)
         }
       } catch (error) {
         console.error('Failed to fetch data:', error)
@@ -188,6 +217,35 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Gamification Section */}
+        {userStats && (
+          <div className="grid gap-6 md:grid-cols-3 mb-8">
+            {/* Level Progress */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Your Level</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <LevelBadge
+                  level={userStats.level}
+                  levelTitle={userStats.levelTitle}
+                  xpProgress={userStats.xpProgress}
+                  totalXP={userStats.totalXP}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Streak Widget */}
+            <StreakWidget
+              currentStreak={userStats.currentStreak}
+              longestStreak={userStats.longestStreak}
+            />
+
+            {/* Recent Achievements */}
+            <RecentAchievements achievements={userStats.recentAchievements} />
+          </div>
+        )}
 
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Recent Workouts */}
