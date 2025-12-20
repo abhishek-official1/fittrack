@@ -190,7 +190,7 @@ export default function WorkoutDetailPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <Header user={user} />
+        <Header />
         <main className="container px-4 py-8">
           <Skeleton className="h-8 w-48 mb-4" />
           <Skeleton className="h-64" />
@@ -205,7 +205,7 @@ export default function WorkoutDetailPage() {
 
   return (
     <div className="min-h-screen">
-      <Header user={user} />
+      <Header />
       
       <main className="container px-4 py-8 max-w-4xl">
         <div className="flex items-center gap-4 mb-6">

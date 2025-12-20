@@ -239,7 +239,7 @@ export default function NewWorkoutPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <Header user={user} />
+        <Header />
         <main className="container px-4 py-8">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-muted rounded w-48" />
@@ -252,7 +252,7 @@ export default function NewWorkoutPage() {
 
   return (
     <div className="min-h-screen">
-      <Header user={user} />
+      <Header />
       
       <main className="container px-4 py-8 max-w-4xl">
         <div className="flex justify-between items-center mb-8">

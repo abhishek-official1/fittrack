@@ -152,7 +152,7 @@ export default function ExercisesPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <Header user={user} />
+        <Header />
         <main className="container px-4 py-8">
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
@@ -166,7 +166,7 @@ export default function ExercisesPage() {
 
   return (
     <div className="min-h-screen">
-      <Header user={user} />
+      <Header />
       
       <main className="container px-4 py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">

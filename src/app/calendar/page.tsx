@@ -89,7 +89,7 @@ export default function CalendarPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <Header user={user} />
+        <Header />
         <main className="container px-4 py-8">
           <Skeleton className="h-96" />
         </main>
@@ -99,7 +99,7 @@ export default function CalendarPage() {
 
   return (
     <div className="min-h-screen">
-      <Header user={user} />
+      <Header />
       
       <main className="container px-4 py-8">
         <div className="flex justify-between items-center mb-8">

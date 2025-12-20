@@ -21,11 +21,9 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-interface HeaderProps {
-  user?: {
-    name: string
-    email: string
-  } | null
+interface UserData {
+  name: string
+  email: string
 }
 
 const navItems = [
@@ -39,14 +37,25 @@ const navItems = [
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
 ]
 
-export function Header({ user }: HeaderProps) {
+export function Header() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isDark, setIsDark] = useState(false)
+  const [user, setUser] = useState<UserData | null>(null)
 
   useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains('dark')
     setIsDark(isDarkMode)
+
+    // Fetch user data
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setUser(data.data)
+        }
+      })
+      .catch(() => {})
   }, [])
 
   const toggleDarkMode = () => {

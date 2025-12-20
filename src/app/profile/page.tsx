@@ -103,7 +103,7 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <Header user={user} />
+        <Header />
         <main className="container px-4 py-8 max-w-2xl">
           <Skeleton className="h-8 w-48 mb-8" />
           <div className="space-y-6">
@@ -117,7 +117,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen">
-      <Header user={user} />
+      <Header />
       
       <main className="container px-4 py-8 max-w-2xl">
         <div className="flex justify-between items-center mb-8">

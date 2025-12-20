@@ -85,7 +85,7 @@ export default function WorkoutsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <Header user={user} />
+        <Header />
         <main className="container px-4 py-8">
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
@@ -99,7 +99,7 @@ export default function WorkoutsPage() {
 
   return (
     <div className="min-h-screen">
-      <Header user={user} />
+      <Header />
       
       <main className="container px-4 py-8">
         <div className="flex justify-between items-center mb-8">

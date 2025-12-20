@@ -165,7 +165,7 @@ export default function AchievementsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <Header user={user} />
+        <Header />
         <main className="container px-4 py-8">
           <Skeleton className="h-8 w-48 mb-4" />
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -180,7 +180,7 @@ export default function AchievementsPage() {
 
   return (
     <div className="min-h-screen">
-      <Header user={user} />
+      <Header />
       
       <main className="container px-4 py-8 max-w-6xl">
         <div className="flex items-center justify-between mb-6">

@@ -125,7 +125,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <Header user={user} />
+        <Header />
         <main className="container px-4 py-8">
           <div className="space-y-6">
             <Skeleton className="h-8 w-48" />
@@ -146,7 +146,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen">
-      <Header user={user} />
+      <Header />
       
       <main className="container px-4 py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
