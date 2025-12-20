@@ -13,7 +13,9 @@ import {
   Sun,
   LogOut,
   BookTemplate,
-  Trophy
+  Trophy,
+  Medal,
+  Sparkles
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
@@ -31,8 +33,9 @@ const navItems = [
   { href: '/workouts', label: 'Workouts', icon: Dumbbell },
   { href: '/calendar', label: 'Calendar', icon: Calendar },
   { href: '/templates', label: 'Templates', icon: BookTemplate },
-  { href: '/exercises', label: 'Exercises', icon: Dumbbell },
   { href: '/achievements', label: 'Achievements', icon: Trophy },
+  { href: '/leaderboards', label: 'Leaderboards', icon: Medal },
+  { href: '/year-review', label: 'Year Review', icon: Sparkles },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
 ]
 
