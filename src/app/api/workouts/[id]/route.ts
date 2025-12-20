@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { calculateOneRepMax } from '@/lib/utils'
+import { updateMuscleRecovery } from '@/lib/recovery'
+import { updateUserStats, checkAndUnlockAchievements } from '@/lib/achievements'
 
 export async function GET(
   request: NextRequest,
@@ -145,6 +147,39 @@ export async function PUT(
           }
         }
       }
+
+      // Update muscle recovery after workout completion
+      await updateMuscleRecovery(session.userId, id)
+
+      // Calculate workout stats for achievements
+      let totalSets = 0
+      let totalReps = 0
+      let totalWeight = 0
+      let totalPRs = 0
+
+      if (exercises) {
+        for (const ex of exercises) {
+          for (const set of ex.sets || []) {
+            if (set.isCompleted) {
+              totalSets++
+              totalReps += set.actualReps || 0
+              totalWeight += (set.weight || 0) * (set.actualReps || 0)
+              if (set.isPR) totalPRs++
+            }
+          }
+        }
+      }
+
+      // Update user stats and check for new achievements
+      await updateUserStats(session.userId, {
+        sets: totalSets,
+        reps: totalReps,
+        weight: totalWeight,
+        prs: totalPRs,
+        duration: workoutData.duration
+      })
+
+      await checkAndUnlockAchievements(session.userId)
     }
 
     // Update workout

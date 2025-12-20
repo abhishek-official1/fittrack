@@ -23,6 +23,7 @@ import { formatDate, formatDuration, formatWeight } from '@/lib/utils'
 import { StreakWidget } from '@/components/gamification/StreakWidget'
 import { RecentAchievements } from '@/components/gamification/RecentAchievements'
 import { LevelBadge } from '@/components/gamification/LevelBadge'
+import { MuscleRecoveryCard } from '@/components/recovery/MuscleRecoveryCard'
 import type { Workout, User } from '@/types'
 
 interface Analytics {
@@ -358,6 +359,11 @@ export default function DashboardPage() {
               )}
             </CardContent>
           </Card>
+        </div>
+
+        {/* Muscle Recovery */}
+        <div className="mt-6">
+          <MuscleRecoveryCard />
         </div>
 
         {/* Quick Stats */}

@@ -34,6 +34,9 @@ model User {
   workoutLikes   WorkoutLike[]
   workoutComments WorkoutComment[]
   
+  // Recovery
+  muscleRecovery MuscleRecovery[]
+  
   @@map("users")
 }
 
@@ -350,4 +353,22 @@ model WorkoutComment {
   
   @@index([workoutId])
   @@map("workout_comments")
+}
+
+// ==================== MUSCLE RECOVERY ====================
+
+model MuscleRecovery {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  muscleGroup   String   // chest, back, shoulders, biceps, triceps, legs, core
+  lastTrained   DateTime
+  totalSets     Int      @default(0)
+  totalVolume   Float    @default(0) // weight * reps
+  recoveryHours Int      @default(48) // estimated hours to recover
+  
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([userId, muscleGroup])
+  @@map("muscle_recovery")
 }
