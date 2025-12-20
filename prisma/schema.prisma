@@ -24,6 +24,16 @@ model User {
   personalRecords PersonalRecord[]
   nutritionLogs  NutritionLog[]
   
+  // Gamification
+  stats          UserStats?
+  achievements   UserAchievement[]
+  
+  // Social
+  followers      Follow[] @relation("Following")
+  following      Follow[] @relation("Followers")
+  workoutLikes   WorkoutLike[]
+  workoutComments WorkoutComment[]
+  
   @@map("users")
 }
 
@@ -90,11 +100,14 @@ model Workout {
   status          String   @default("planned") // planned, in_progress, completed, cancelled
   rating          Int?     // 1-5 user satisfaction rating
   perceivedEffort Int?     // 1-10 RPE scale
+  visibility      String   @default("private") // private, followers, public
   
   templateId      String?
   template        WorkoutTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
   
   exercises       WorkoutExercise[]
+  likes           WorkoutLike[]
+  comments        WorkoutComment[]
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -229,4 +242,112 @@ model NutritionLog {
   
   @@index([userId, date])
   @@map("nutrition_logs")
+}
+
+// ==================== GAMIFICATION ====================
+
+model Achievement {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  description     String
+  category        String   // workout, strength, consistency, volume, special
+  icon            String   // lucide icon name
+  rarity          String   @default("common") // common, uncommon, rare, epic, legendary
+  requirement     Json     // { type: "workout_count", value: 10 }
+  xpReward        Int      @default(50)
+  isSecret        Boolean  @default(false)
+  
+  userAchievements UserAchievement[]
+  
+  createdAt       DateTime @default(now())
+  
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  unlockedAt    DateTime    @default(now())
+  progress      Float       @default(0) // 0-100 for progressive achievements
+  
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@map("user_achievements")
+}
+
+model UserStats {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // XP & Level
+  totalXP         Int       @default(0)
+  currentLevel    Int       @default(1)
+  
+  // Workout Stats
+  totalWorkouts   Int       @default(0)
+  totalExercises  Int       @default(0)
+  totalSets       Int       @default(0)
+  totalReps       Int       @default(0)
+  totalWeight     Float     @default(0) // kg
+  totalDuration   Int       @default(0) // minutes
+  
+  // Streaks
+  currentStreak   Int       @default(0)
+  longestStreak   Int       @default(0)
+  lastWorkoutDate DateTime?
+  
+  // Records
+  totalPRs        Int       @default(0)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@map("user_stats")
+}
+
+// ==================== SOCIAL ====================
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  follower    User     @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("follows")
+}
+
+model WorkoutLike {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workoutId String
+  workout   Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, workoutId])
+  @@index([workoutId])
+  @@map("workout_likes")
+}
+
+model WorkoutComment {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workoutId String
+  workout   Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([workoutId])
+  @@map("workout_comments")
 }
