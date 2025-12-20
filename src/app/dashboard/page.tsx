@@ -24,6 +24,7 @@ import { StreakWidget } from '@/components/gamification/StreakWidget'
 import { RecentAchievements } from '@/components/gamification/RecentAchievements'
 import { LevelBadge } from '@/components/gamification/LevelBadge'
 import { MuscleRecoveryCard } from '@/components/recovery/MuscleRecoveryCard'
+import { PRPredictionsCard } from '@/components/predictions/PRPredictionsCard'
 import type { Workout, User } from '@/types'
 
 interface Analytics {
@@ -361,8 +362,9 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Muscle Recovery */}
-        <div className="mt-6">
+        {/* PR Predictions & Muscle Recovery */}
+        <div className="grid gap-6 lg:grid-cols-2 mt-6">
+          <PRPredictionsCard />
           <MuscleRecoveryCard />
         </div>
 

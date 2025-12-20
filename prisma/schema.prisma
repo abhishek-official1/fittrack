@@ -37,6 +37,18 @@ model User {
   // Recovery
   muscleRecovery MuscleRecovery[]
   
+  // Guilds
+  guildMembership GuildMember?
+  
+  // Workout Parties
+  hostedParties   WorkoutParty[] @relation("PartyHost")
+  partyParticipations PartyParticipant[]
+  partyEvents     PartyEvent[]
+  
+  // Leaderboards & Predictions
+  exerciseLeaderboards ExerciseLeaderboard[]
+  prPredictions   PRPrediction[]
+  
   @@map("users")
 }
 
@@ -81,6 +93,8 @@ model Exercise {
   workoutExercises WorkoutExercise[]
   templateExercises TemplateExercise[]
   personalRecords PersonalRecord[]
+  leaderboardEntries ExerciseLeaderboard[]
+  prPredictions   PRPrediction[]
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -111,6 +125,7 @@ model Workout {
   exercises       WorkoutExercise[]
   likes           WorkoutLike[]
   comments        WorkoutComment[]
+  partyParticipants PartyParticipant[]
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -371,4 +386,193 @@ model MuscleRecovery {
   
   @@unique([userId, muscleGroup])
   @@map("muscle_recovery")
+}
+
+// ==================== GUILDS (Team Competition) ====================
+
+model Guild {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  description     String?
+  avatarUrl       String?
+  guildType       String   @default("public") // public, private, corporate
+  maxMembers      Int      @default(50)
+  totalXP         Int      @default(0)
+  seasonXP        Int      @default(0)
+  tier            String   @default("bronze") // bronze, silver, gold, platinum, diamond
+  totalWorkouts   Int      @default(0)
+  totalVolume     Float    @default(0)
+  leaderId        String
+  
+  members         GuildMember[]
+  challengesSent  GuildChallenge[] @relation("ChallengerGuild")
+  challengesReceived GuildChallenge[] @relation("DefenderGuild")
+  wonChallenges   GuildChallenge[] @relation("WinnerGuild")
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("guilds")
+}
+
+model GuildMember {
+  id              String   @id @default(uuid())
+  guildId         String
+  guild           Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role            String   @default("member") // leader, officer, member
+  xpContributed   Int      @default(0)
+  workoutsContributed Int  @default(0)
+  joinedAt        DateTime @default(now())
+  
+  @@unique([guildId, userId])
+  @@unique([userId]) // User can only be in one guild
+  @@index([guildId])
+  @@map("guild_members")
+}
+
+model GuildChallenge {
+  id              String   @id @default(uuid())
+  challengerGuildId String
+  challengerGuild Guild    @relation("ChallengerGuild", fields: [challengerGuildId], references: [id], onDelete: Cascade)
+  defenderGuildId String
+  defenderGuild   Guild    @relation("DefenderGuild", fields: [defenderGuildId], references: [id], onDelete: Cascade)
+  
+  challengeType   String   // total_volume, workout_count, total_xp
+  targetValue     Int?
+  xpStake         Int      @default(500)
+  
+  challengerScore Float    @default(0)
+  defenderScore   Float    @default(0)
+  
+  status          String   @default("pending") // pending, active, completed, declined
+  winnerGuildId   String?
+  winnerGuild     Guild?   @relation("WinnerGuild", fields: [winnerGuildId], references: [id])
+  
+  startsAt        DateTime
+  endsAt          DateTime
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("guild_challenges")
+}
+
+// ==================== WORKOUT PARTIES (Real-time Social) ====================
+
+model WorkoutParty {
+  id              String   @id @default(uuid())
+  hostId          String
+  host            User     @relation("PartyHost", fields: [hostId], references: [id], onDelete: Cascade)
+  code            String   @unique // 6-char alphanumeric
+  name            String?
+  status          String   @default("waiting") // waiting, active, completed
+  maxParticipants Int      @default(10)
+  
+  startedAt       DateTime?
+  endedAt         DateTime?
+  expiresAt       DateTime
+  
+  participants    PartyParticipant[]
+  events          PartyEvent[]
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([code])
+  @@index([status])
+  @@map("workout_parties")
+}
+
+model PartyParticipant {
+  id              String   @id @default(uuid())
+  partyId         String
+  party           WorkoutParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workoutId       String?
+  workout         Workout? @relation(fields: [workoutId], references: [id])
+  
+  totalSets       Int      @default(0)
+  totalVolume     Float    @default(0)
+  prsAchieved     Int      @default(0)
+  
+  joinedAt        DateTime @default(now())
+  leftAt          DateTime?
+  
+  @@unique([partyId, userId])
+  @@index([partyId])
+  @@map("party_participants")
+}
+
+model PartyEvent {
+  id              String   @id @default(uuid())
+  partyId         String
+  party           WorkoutParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  eventType       String   // set_completed, pr_achieved, exercise_started, reaction, joined, left
+  eventData       Json?    // { exerciseName, weight, reps, reactionType, etc }
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([partyId, createdAt(sort: Desc)])
+  @@map("party_events")
+}
+
+// ==================== EXERCISE LEADERBOARDS ====================
+
+model ExerciseLeaderboard {
+  id              String   @id @default(uuid())
+  exerciseId      String
+  exercise        Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  estimated1RM    Float    // Brzycki formula: weight * (36 / (37 - reps))
+  bestWeight      Float
+  bestReps        Int
+  weightClass     String?  // lightweight (<70kg), middleweight (70-85kg), heavyweight (>85kg)
+  
+  globalRank      Int?
+  classRank       Int?
+  
+  achievedAt      DateTime
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([exerciseId, userId])
+  @@index([exerciseId, estimated1RM(sort: Desc)])
+  @@index([exerciseId, weightClass, estimated1RM(sort: Desc)])
+  @@map("exercise_leaderboards")
+}
+
+// ==================== PR PREDICTIONS ====================
+
+model PRPrediction {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exerciseId      String
+  exercise        Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  
+  currentMax      Float
+  predictedMax    Float
+  suggestedWeight Float
+  confidence      Float    // 0-1
+  trend           String   // improving, plateau, declining
+  
+  readyForPR      Boolean  @default(false)
+  notificationSent Boolean @default(false)
+  
+  expiresAt       DateTime
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([userId, exerciseId])
+  @@index([userId, readyForPR])
+  @@map("pr_predictions")
 }

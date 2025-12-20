@@ -15,7 +15,9 @@ import {
   BookTemplate,
   Trophy,
   Medal,
-  Sparkles
+  Sparkles,
+  Shield,
+  PartyPopper
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
@@ -29,11 +31,10 @@ interface UserData {
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: BarChart3 },
   { href: '/workouts', label: 'Workouts', icon: Dumbbell },
-  { href: '/calendar', label: 'Calendar', icon: Calendar },
-  { href: '/templates', label: 'Templates', icon: BookTemplate },
+  { href: '/guilds', label: 'Guilds', icon: Shield },
+  { href: '/exercise-rankings', label: 'Rankings', icon: Medal },
+  { href: '/workout-party', label: 'Party', icon: PartyPopper },
   { href: '/achievements', label: 'Achievements', icon: Trophy },
-  { href: '/leaderboards', label: 'Leaderboards', icon: Medal },
-  { href: '/year-review', label: 'Year Review', icon: Sparkles },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
 ]
 

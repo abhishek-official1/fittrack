@@ -21,6 +21,20 @@ export function formatDuration(minutes: number): string {
   return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
 }
 
+export function formatNumber(num: number): string {
+  if (num >= 1000000) {
+    return `${(num / 1000000).toFixed(1)}M`
+  }
+  if (num >= 1000) {
+    return `${(num / 1000).toFixed(1)}K`
+  }
+  return num.toLocaleString()
+}
+
+export function formatTime(date: Date | string): string {
+  return format(new Date(date), 'HH:mm')
+}
+
 export function formatWeight(weight: number, units: 'metric' | 'imperial' = 'metric'): string {
   if (units === 'imperial') {
     return `${(weight * 2.20462).toFixed(1)} lbs`

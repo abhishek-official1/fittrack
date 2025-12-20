@@ -1,4 +1,20 @@
 {
-  "buildCommand": "prisma generate && prisma db push && next build",
-  "framework": "nextjs"
+  "crons": [
+    {
+      "path": "/api/cron/guild-rankings",
+      "schedule": "0 0 * * 0"
+    },
+    {
+      "path": "/api/cron/leaderboard-refresh",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/challenge-check",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-parties",
+      "schedule": "0 */2 * * *"
+    }
+  ]
 }
