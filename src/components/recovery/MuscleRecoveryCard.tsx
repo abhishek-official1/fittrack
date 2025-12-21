@@ -138,46 +138,60 @@ export function MuscleRecoveryCard() {
     return null
   }
 
+  // Sort: Fatigued first, then recovering, then recovered
+  const sortedMuscles = [...data.muscles].sort((a, b) => a.recoveryPercent - b.recoveryPercent)
+  
+  // Show only top 3 relevant muscles (fatigued/recovering) or just the first 3 if mostly recovered
+  const displayedMuscles = sortedMuscles.slice(0, 3)
+  const remainingCount = Math.max(0, data.muscles.length - 3)
+
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
             Muscle Recovery
           </CardTitle>
-          <Badge variant="outline">
-            {data.readyCount}/{data.totalMuscles} Ready
+          <Badge variant={data.overallRecovery > 80 ? "success" : "secondary"}>
+            {data.overallRecovery}% Overall
           </Badge>
-        </div>
-        
-        {/* Overall Recovery */}
-        <div className="mt-3">
-          <div className="flex justify-between text-sm mb-1">
-            <span className="text-muted-foreground">Overall Recovery</span>
-            <span className="font-medium">{data.overallRecovery}%</span>
-          </div>
-          <Progress value={data.overallRecovery} className="h-3" />
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-2">
-        {data.muscles.map(muscle => (
-          <MuscleBar key={muscle.muscleGroup} muscle={muscle} />
-        ))}
-
-        {data.suggestedMuscles.length > 0 && (
-          <div className="mt-4 p-3 bg-primary/5 rounded-lg">
-            <p className="text-sm font-medium mb-2">Suggested for today:</p>
+      <CardContent className="space-y-4 flex-1">
+        {/* Suggested Section - Highlight this first */}
+        {data.suggestedMuscles.length > 0 ? (
+          <div className="p-3 bg-primary/5 rounded-lg border border-primary/10">
+            <p className="text-xs font-semibold text-primary mb-2 uppercase tracking-wider">Ready to Train</p>
             <div className="flex flex-wrap gap-2">
               {data.suggestedMuscles.slice(0, 3).map(muscle => (
-                <Badge key={muscle} className="capitalize">
+                <Badge key={muscle} className="capitalize bg-background text-foreground hover:bg-background/80 border-primary/20">
                   {MUSCLE_LABELS[muscle]}
                 </Badge>
               ))}
             </div>
           </div>
+        ) : (
+          <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center gap-3">
+            <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <p className="text-sm font-medium">All muscles fully recovered!</p>
+          </div>
         )}
+
+        {/* Fatigue Status - Only show if there's fatigue */}
+        <div className="space-y-2">
+          <p className="text-xs font-muted-foreground text-muted-foreground uppercase tracking-wider">Recovery Status</p>
+          {displayedMuscles.map(muscle => (
+            <MuscleBar key={muscle.muscleGroup} muscle={muscle} />
+          ))}
+          
+          {remainingCount > 0 && (
+            <p className="text-xs text-center text-muted-foreground pt-1">
+              + {remainingCount} other muscle groups
+            </p>
+          )}
+        </div>
       </CardContent>
     </Card>
   )
