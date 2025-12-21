@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { workoutSchema } from '@/lib/validations'
+import { WorkoutService } from '@/services/workout.service'
 
 export async function GET(request: NextRequest) {
   try {
@@ -81,45 +82,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { exercises, ...workoutData } = body
-
-    const workout = await prisma.workout.create({
-      data: {
-        userId: session.userId,
-        name: workoutData.name,
-        date: new Date(workoutData.date),
-        notes: workoutData.notes,
-        templateId: workoutData.templateId || null,
-        status: 'planned',
-        exercises: exercises ? {
-          create: exercises.map((ex: { exerciseId: string; order: number; notes?: string; sets?: Array<{ setNumber: number; setType: string; targetReps?: number; weight?: number; restTime?: number }> }) => ({
-            exerciseId: ex.exerciseId,
-            order: ex.order,
-            notes: ex.notes,
-            sets: ex.sets ? {
-              create: ex.sets.map((set: { setNumber: number; setType: string; targetReps?: number; weight?: number; restTime?: number }) => ({
-                setNumber: set.setNumber,
-                setType: set.setType || 'working',
-                targetReps: set.targetReps,
-                weight: set.weight,
-                restTime: set.restTime,
-              }))
-            } : undefined
-          }))
-        } : undefined
-      },
-      include: {
-        exercises: {
-          include: {
-            exercise: true,
-            sets: {
-              orderBy: { setNumber: 'asc' }
-            }
-          },
-          orderBy: { order: 'asc' }
-        }
-      }
-    })
+    // Use Service Layer
+    const workout = await WorkoutService.create(session.userId, validation.data)
 
     return NextResponse.json({ success: true, data: workout }, { status: 201 })
   } catch (error) {

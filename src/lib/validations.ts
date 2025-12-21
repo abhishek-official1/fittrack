@@ -40,13 +40,6 @@ export const exerciseSchema = z.object({
   instructions: z.string().optional(),
 })
 
-export const workoutSchema = z.object({
-  name: z.string().min(1, 'Workout name is required'),
-  date: z.string(),
-  notes: z.string().optional(),
-  templateId: z.string().optional(),
-})
-
 export const exerciseSetSchema = z.object({
   setNumber: z.number().int().positive(),
   setType: z.enum(['warmup', 'working', 'dropset', 'failure', 'rest_pause']),
@@ -64,6 +57,14 @@ export const workoutExerciseSchema = z.object({
   order: z.number().int().min(0),
   notes: z.string().optional(),
   sets: z.array(exerciseSetSchema),
+})
+
+export const workoutSchema = z.object({
+  name: z.string().min(1, 'Workout name is required'),
+  date: z.string(),
+  notes: z.string().optional(),
+  templateId: z.string().optional(),
+  exercises: z.array(workoutExerciseSchema).optional(),
 })
 
 export const templateSchema = z.object({
