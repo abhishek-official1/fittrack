@@ -105,6 +105,8 @@ export const muscleGroups = [
   'biceps',
   'triceps',
   'legs',
+  'glutes',
+  'calves',
   'core',
   'cardio',
   'full_body',

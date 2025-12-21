@@ -48,6 +48,7 @@ export default function ExercisesPage() {
     equipment: '',
     instructions: '',
   })
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -370,6 +371,13 @@ export default function ExercisesPage() {
                             {exercise.description}
                           </p>
                         )}
+                        <Button
+                          variant="link"
+                          className="p-0 h-auto mt-2 text-primary"
+                          onClick={() => setSelectedExercise(exercise)}
+                        >
+                          View Details
+                        </Button>
                       </CardContent>
                     </Card>
                   ))}
@@ -378,6 +386,55 @@ export default function ExercisesPage() {
             ))}
           </div>
         )}
+
+        {/* Exercise Detail Dialog */}
+        <Dialog open={!!selectedExercise} onOpenChange={(open) => !open && setSelectedExercise(null)}>
+          <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Dumbbell className="h-5 w-5 text-primary" />
+                </div>
+                {selectedExercise?.name}
+              </DialogTitle>
+            </DialogHeader>
+            {selectedExercise && (
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline" className="capitalize">
+                    {selectedExercise.muscleGroup?.replace('_', ' ')}
+                  </Badge>
+                  <Badge variant="secondary" className="capitalize">
+                    {selectedExercise.category}
+                  </Badge>
+                  {selectedExercise.equipment && (
+                    <Badge variant="secondary" className="capitalize">
+                      {selectedExercise.equipment}
+                    </Badge>
+                  )}
+                </div>
+
+                {selectedExercise.description && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-1">Description</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedExercise.description}
+                    </p>
+                  </div>
+                )}
+
+                {selectedExercise.instructions && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-1">Instructions</h4>
+                    <p className="text-sm text-muted-foreground whitespace-pre-line">
+                      {selectedExercise.instructions}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   )
