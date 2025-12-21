@@ -76,17 +76,6 @@ export const templateSchema = z.object({
   difficulty: z.enum(['beginner', 'intermediate', 'advanced']),
 })
 
-export const nutritionLogSchema = z.object({
-  date: z.string(),
-  mealType: z.enum(['breakfast', 'lunch', 'dinner', 'snack']).optional(),
-  calories: z.number().int().min(0).optional(),
-  protein: z.number().min(0).optional(),
-  carbs: z.number().min(0).optional(),
-  fat: z.number().min(0).optional(),
-  fiber: z.number().min(0).optional(),
-  notes: z.string().optional(),
-})
-
 export type SignUpInput = z.infer<typeof signUpSchema>
 export type SignInInput = z.infer<typeof signInSchema>
 export type ProfileInput = z.infer<typeof profileSchema>
@@ -95,4 +84,3 @@ export type WorkoutInput = z.infer<typeof workoutSchema>
 export type ExerciseSetInput = z.infer<typeof exerciseSetSchema>
 export type WorkoutExerciseInput = z.infer<typeof workoutExerciseSchema>
 export type TemplateInput = z.infer<typeof templateSchema>
-export type NutritionLogInput = z.infer<typeof nutritionLogSchema>
