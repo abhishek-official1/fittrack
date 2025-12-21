@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { User, Save, Target, Ruler, Scale, Calendar as CalendarIcon } from 'lucide-react'
+import { User, Save, Target, Ruler, Scale, Calendar as CalendarIcon, Download } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -97,6 +97,24 @@ export default function ProfilePage() {
       toast({ title: 'Failed to update profile', variant: 'destructive' })
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleExport = async () => {
+    try {
+      const res = await fetch('/api/export')
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `fittrack-data-${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      toast({ title: 'Data exported successfully!', variant: 'success' })
+    } catch (error) {
+      toast({ title: 'Failed to export data', variant: 'destructive' })
     }
   }
 
@@ -297,11 +315,17 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle>Account Actions</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground mb-4">
                 Member since {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
               </p>
-              <Button variant="outline" className="text-destructive border-destructive">
+              
+              <Button variant="outline" onClick={handleExport} className="w-full justify-start">
+                <Download className="h-4 w-4 mr-2" />
+                Export My Data
+              </Button>
+              
+              <Button variant="outline" className="w-full justify-start text-destructive border-destructive hover:bg-destructive/10">
                 Delete Account
               </Button>
             </CardContent>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, Dumbbell, Clock, Calendar, MoreVertical, Trash2, Edit } from 'lucide-react'
+import { Plus, Dumbbell, Clock, Calendar, MoreVertical, Trash2, Edit, FileText } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -109,12 +109,20 @@ export default function WorkoutsPage() {
               Manage and track your training sessions
             </p>
           </div>
-          <Link href="/workouts/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              New Workout
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/templates">
+              <Button variant="outline">
+                <FileText className="h-4 w-4 mr-2" />
+                Templates
+              </Button>
+            </Link>
+            <Link href="/workouts/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New Workout
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {workouts.length === 0 ? (

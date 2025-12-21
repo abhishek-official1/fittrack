@@ -25,6 +25,7 @@ import { RecentAchievements } from '@/components/gamification/RecentAchievements
 import { LevelBadge } from '@/components/gamification/LevelBadge'
 import { MuscleRecoveryCard } from '@/components/recovery/MuscleRecoveryCard'
 import { PRPredictionsCard } from '@/components/predictions/PRPredictionsCard'
+import { HiddenFeaturesWidget } from '@/components/dashboard/HiddenFeaturesWidget'
 import type { Workout, User } from '@/types'
 
 interface Analytics {
@@ -367,6 +368,9 @@ export default function DashboardPage() {
           <PRPredictionsCard />
           <MuscleRecoveryCard />
         </div>
+
+        {/* Quick Access to Hidden Features */}
+        <HiddenFeaturesWidget />
 
         {/* Quick Stats */}
         {analytics?.overview.favoriteExercise && (
