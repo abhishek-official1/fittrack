@@ -48,6 +48,11 @@ model User {
   exerciseLeaderboards ExerciseLeaderboard[]
   prPredictions   PRPrediction[]
   
+  // Coach Plan
+  coachPlan       CoachPlan?
+  nutritionLogs   NutritionLog[]
+  dailyChecklists DailyChecklist[]
+  
   @@map("users")
 }
 
@@ -553,4 +558,142 @@ model PRPrediction {
   @@unique([userId, exerciseId])
   @@index([userId, readyForPR])
   @@map("pr_predictions")
+}
+
+// ==================== COACH PLAN ====================
+
+model CoachPlan {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Plan settings
+  isActive        Boolean  @default(true)
+  startDate       DateTime @default(now())
+  currentDay      Int      @default(1) // 1-6, or 0 for rest
+  rotationMode    String   @default("next_workout") // calendar_based, next_workout
+  deloadMode      Boolean  @default(false)
+  
+  // User context
+  age             Int?
+  weight          Float?   // kg
+  height          Float?   // cm
+  gender          String?
+  experienceLevel String   @default("intermediate")
+  fitnessGoal     String   @default("recomposition") // recomposition, fat_loss, muscle_gain, strength
+  
+  // Nutrition targets
+  caloriesMin     Int      @default(2300)
+  caloriesMax     Int      @default(2400)
+  proteinMin      Int      @default(160)
+  proteinMax      Int      @default(190)
+  carbsGuidance   String?
+  fatsGuidance    String?
+  
+  // Daily checklist targets
+  stepsTarget     Int      @default(9000)
+  waterTarget     Float    @default(3.0) // liters
+  sleepTarget     Float    @default(7.5) // hours
+  mobilityTarget  Int      @default(10) // minutes
+  
+  // Reminders
+  reminderEnabled Boolean  @default(true)
+  reminderTime    String   @default("19:00") // HH:MM format
+  
+  // Template links (6 coach templates)
+  pushATemplateId   String?
+  pullATemplateId   String?
+  legsATemplateId   String?
+  pushBTemplateId   String?
+  pullBTemplateId   String?
+  legsBTemplateId   String?
+  
+  days            CoachPlanDay[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("coach_plans")
+}
+
+model CoachPlanDay {
+  id              String   @id @default(uuid())
+  coachPlanId     String
+  coachPlan       CoachPlan @relation(fields: [coachPlanId], references: [id], onDelete: Cascade)
+  
+  dayNumber       Int      // 1-6
+  dayName         String   // Push A, Pull A, Legs A, Push B, Pull B, Legs B
+  muscleGroups    String[] // Array of muscle groups targeted
+  estimatedDuration Int    @default(90) // minutes
+  
+  // Exercises with prescriptions (stored as JSON for flexibility)
+  exercises       Json     // Array of { name, sets, repsRange, rest, rpe, substitutions, notes }
+  
+  // Warm-up protocol (stored as JSON)
+  warmup          Json     // { cardio, dynamic, rampSets }
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([coachPlanId, dayNumber])
+  @@index([coachPlanId])
+  @@map("coach_plan_days")
+}
+
+// ==================== NUTRITION TRACKING ====================
+
+model NutritionLog {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  date            DateTime @db.Date
+  mealName        String?  // Breakfast, Lunch, Dinner, Snack, etc.
+  mealTime        String?  // HH:MM format
+  
+  calories        Int
+  protein         Float    // grams
+  carbs           Float?   // grams
+  fats            Float?   // grams
+  
+  notes           String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([userId, date])
+  @@map("nutrition_logs")
+}
+
+// ==================== DAILY CHECKLIST ====================
+
+model DailyChecklist {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  date            DateTime @db.Date
+  
+  steps           Int?
+  stepsCompleted  Boolean  @default(false)
+  
+  waterLiters     Float?
+  waterCompleted  Boolean  @default(false)
+  
+  sleepHours      Float?
+  sleepCompleted  Boolean  @default(false)
+  
+  mobilityMinutes Int?
+  mobilityCompleted Boolean @default(false)
+  
+  workoutCompleted Boolean @default(false)
+  
+  notes           String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@map("daily_checklists")
 }
