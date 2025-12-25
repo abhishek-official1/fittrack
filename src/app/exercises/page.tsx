@@ -371,13 +371,22 @@ export default function ExercisesPage() {
                             {exercise.description}
                           </p>
                         )}
-                        <Button
-                          variant="link"
-                          className="p-0 h-auto mt-2 text-primary"
-                          onClick={() => setSelectedExercise(exercise)}
-                        >
-                          View Details
-                        </Button>
+                        <div className="flex gap-3 mt-3">
+                          <Button
+                            variant="link"
+                            className="p-0 h-auto text-primary"
+                            onClick={() => setSelectedExercise(exercise)}
+                          >
+                            View Details
+                          </Button>
+                          <Button
+                            variant="link"
+                            className="p-0 h-auto text-primary"
+                            onClick={() => router.push(`/progression/${exercise.id}`)}
+                          >
+                            View Progression
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
