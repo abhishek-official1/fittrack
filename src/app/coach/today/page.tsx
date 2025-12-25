@@ -120,73 +120,128 @@ export default function TodayPage() {
       return
     }
 
-    // Find exercise IDs from the plan (stored in exercises JSON)
-    const exercisesToCreate = []
-    
-    for (const ex of data.plan.exercises) {
-      // Try to find the exercise ID
-      let exerciseId = ex.exerciseId
+    try {
+      // First, fetch all exercises from the database
+      const exercisesRes = await fetch('/api/exercises')
+      const exercisesResult = await exercisesRes.json()
       
-      // If no exerciseId, try to find it by name
-      if (!exerciseId) {
-        try {
-          const searchRes = await fetch('/api/exercises')
-          const searchResult = await searchRes.json()
-          if (searchResult.success) {
-            const found = searchResult.data.find((e: any) => 
-              e.name.toLowerCase() === ex.name.toLowerCase()
-            )
-            if (found) {
-              exerciseId = found.id
+      if (!exercisesResult.success || !exercisesResult.data) {
+        alert('Failed to load exercises. Please try again.')
+        return
+      }
+
+      const allExercises = exercisesResult.data
+      console.log('Total exercises in database:', allExercises.length)
+      
+      // Find exercise IDs from the plan
+      const exercisesToCreate = []
+      const notFoundExercises = []
+      
+      for (const ex of data.plan.exercises) {
+        console.log('Looking for exercise:', ex.name)
+        
+        // Try exact match first
+        let found = allExercises.find((e: any) => 
+          e.name.toLowerCase().trim() === ex.name.toLowerCase().trim()
+        )
+        
+        // If not found, try partial match
+        if (!found) {
+          found = allExercises.find((e: any) => 
+            e.name.toLowerCase().includes(ex.name.toLowerCase()) ||
+            ex.name.toLowerCase().includes(e.name.toLowerCase())
+          )
+        }
+
+        if (found) {
+          console.log('✓ Found:', found.name, '(ID:', found.id, ')')
+          
+          // Parse rep range (e.g., "5-8" -> target 8 reps)
+          let targetReps = 10 // default
+          try {
+            if (ex.repsRange) {
+              const repMatch = ex.repsRange.match(/(\d+)-(\d+)/)
+              if (repMatch) {
+                targetReps = parseInt(repMatch[2]) // Use upper range
+              } else {
+                targetReps = parseInt(ex.repsRange)
+              }
             }
+          } catch (err) {
+            console.warn('Could not parse reps:', ex.repsRange)
           }
-        } catch (err) {
-          console.warn(`Could not find exercise: ${ex.name}`)
-          continue
+
+          // Parse RPE (e.g., "7-8" -> 8)
+          let targetRPE = 7 // default
+          try {
+            if (ex.targetRPE) {
+              const rpeMatch = ex.targetRPE.match(/(\d+)-(\d+)/)
+              if (rpeMatch) {
+                targetRPE = parseInt(rpeMatch[2]) // Use upper range
+              } else {
+                targetRPE = parseInt(ex.targetRPE)
+              }
+            }
+          } catch (err) {
+            console.warn('Could not parse RPE:', ex.targetRPE)
+          }
+
+          exercisesToCreate.push({
+            exerciseId: found.id,
+            order: exercisesToCreate.length + 1,
+            notes: ex.notes || '',
+            sets: Array.from({ length: ex.sets || 3 }, (_, i) => ({
+              setNumber: i + 1,
+              setType: 'working',
+              targetReps: targetReps,
+              rpe: targetRPE,
+              restTime: 90 // default 90 seconds
+            }))
+          })
+        } else {
+          console.warn('✗ Not found:', ex.name)
+          notFoundExercises.push(ex.name)
         }
       }
 
-      if (exerciseId) {
-        exercisesToCreate.push({
-          exerciseId,
-          order: exercisesToCreate.length + 1,
-          sets: Array.from({ length: ex.sets }, (_, i) => ({
-            setNumber: i + 1,
-            setType: i === 0 ? 'warmup' : 'working',
-            targetReps: parseInt(ex.repsRange.split('-')[1] || ex.repsRange),
-            rpe: ex.targetRPE ? parseInt(ex.targetRPE.split('-')[1] || ex.targetRPE) : 7
-          }))
-        })
+      console.log('Exercises to create:', exercisesToCreate.length)
+      console.log('Not found:', notFoundExercises)
+
+      if (exercisesToCreate.length === 0) {
+        alert(`Could not find any exercises in the database.\n\nMissing: ${notFoundExercises.join(', ')}\n\nPlease make sure the exercise database is properly seeded.`)
+        return
       }
-    }
 
-    if (exercisesToCreate.length === 0) {
-      alert('No exercises found. Please check that exercises are properly configured.')
-      return
-    }
+      if (notFoundExercises.length > 0) {
+        const proceed = confirm(`Found ${exercisesToCreate.length} exercises, but ${notFoundExercises.length} were not found:\n\n${notFoundExercises.join('\n')}\n\nDo you want to create the workout with the available exercises?`)
+        if (!proceed) return
+      }
 
-    try {
+      // Create the workout
       const res = await fetch('/api/workouts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: `${data.plan.dayName} - ${new Date().toLocaleDateString()}`,
           date: new Date().toISOString(),
-          status: 'planned', // Create as planned first, not in_progress
+          status: 'planned',
           exercises: exercisesToCreate
         })
       })
 
       const result = await res.json()
+      
       if (result.success) {
+        console.log('✓ Workout created successfully:', result.data.id)
         // Navigate to the workout detail page where user can edit and start
         router.push(`/workouts/${result.data.id}`)
       } else {
-        alert(result.error || 'Failed to create workout')
+        console.error('Failed to create workout:', result.error)
+        alert(`Failed to create workout: ${result.error || 'Unknown error'}`)
       }
     } catch (err) {
       console.error('Error creating workout:', err)
-      alert('Error creating workout. Please try again.')
+      alert('Error creating workout. Please check the console for details.')
     }
   }
 
