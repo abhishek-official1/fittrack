@@ -98,14 +98,14 @@ const coachPlanDays = [
         substitutions: ['Pull-ups', 'Assisted Pull-ups']
       },
       {
-        name: 'Chest-Supported Row',
+        name: 'Chest Supported Row',
         exerciseId: null,
         sets: 3,
         repsRange: '8-12',
         rest: '90-120s',
         targetRPE: '7-8',
         notes: 'Minimize momentum. Squeeze scapulae.',
-        substitutions: ['Cable Row', 'Machine Row', 'Barbell Row']
+        substitutions: ['Cable Row', 'Machine Row', 'Barbell Bent Over Row']
       },
       {
         name: 'Face Pulls',
@@ -214,7 +214,7 @@ const coachPlanDays = [
     },
     exercises: [
       {
-        name: 'Incline Barbell Press',
+        name: 'Incline Barbell Bench Press',
         exerciseId: null,
         sets: 4,
         repsRange: '6-10',
@@ -254,14 +254,14 @@ const coachPlanDays = [
         substitutions: ['Cable Lateral Raise', 'Machine Lateral Raise']
       },
       {
-        name: 'Overhead Triceps Extension',
+        name: 'Overhead Cable Triceps Extension',
         exerciseId: null,
         sets: 3,
         repsRange: '10-15',
         rest: '60-90s',
         targetRPE: '6-8',
         notes: 'Long head triceps emphasis.',
-        substitutions: ['Skull Crushers', 'Cable Pushdown']
+        substitutions: ['Skull Crusher', 'Triceps Pushdown']
       }
     ]
   },
@@ -380,14 +380,14 @@ const coachPlanDays = [
         substitutions: ['Seated Calf Raise']
       },
       {
-        name: 'Incline Treadmill Walk',
+        name: 'Running',
         exerciseId: null,
         sets: 1,
         repsRange: '12-20 min',
         rest: 'N/A',
         targetRPE: '4-5',
-        notes: 'Zone 2 cardio. Conversational pace. Can substitute with cycling or rowing.',
-        substitutions: ['Cycling', 'Rowing', 'Stair Master']
+        notes: 'Zone 2 cardio. Conversational pace, incline walk on treadmill preferred. Can substitute with cycling or rowing.',
+        substitutions: ['Cycling', 'Rowing Machine', 'Jump Rope']
       }
     ]
   }
