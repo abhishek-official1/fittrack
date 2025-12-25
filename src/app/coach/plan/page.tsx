@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { ReminderSystem } from '@/components/reminders/ReminderSystem'
 import { cn } from '@/lib/utils'
 
 interface CoachPlan {
@@ -457,6 +458,9 @@ export default function CoachPlanPage() {
             </TabsContent>
           ))}
         </Tabs>
+
+        {/* Reminder System */}
+        <ReminderSystem />
 
         {/* Quick Actions */}
         <Card>
