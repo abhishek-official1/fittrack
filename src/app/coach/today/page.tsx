@@ -113,17 +113,57 @@ export default function TodayPage() {
   const handleStartWorkout = async () => {
     if (!data) return
 
-    // Create workout from today's plan
-    const exercises = data.plan.exercises.map((ex: any, index: number) => ({
-      exerciseId: ex.exerciseId,
-      order: index + 1,
-      sets: Array.from({ length: ex.sets }, (_, i) => ({
-        setNumber: i + 1,
-        setType: i === 0 ? 'warmup' : 'working',
-        targetReps: parseInt(ex.repsRange.split('-')[1] || ex.repsRange),
-        rpe: ex.targetRPE ? parseInt(ex.targetRPE.split('-')[1] || ex.targetRPE) : 7
-      }))
-    }))
+    // Check if workout already exists for today
+    if (workout.hasStarted && workout.workoutId) {
+      // Navigate to existing workout
+      router.push(`/workouts/${workout.workoutId}`)
+      return
+    }
+
+    // Find exercise IDs from the plan (stored in exercises JSON)
+    const exercisesToCreate = []
+    
+    for (const ex of data.plan.exercises) {
+      // Try to find the exercise ID
+      let exerciseId = ex.exerciseId
+      
+      // If no exerciseId, try to find it by name
+      if (!exerciseId) {
+        try {
+          const searchRes = await fetch('/api/exercises')
+          const searchResult = await searchRes.json()
+          if (searchResult.success) {
+            const found = searchResult.data.find((e: any) => 
+              e.name.toLowerCase() === ex.name.toLowerCase()
+            )
+            if (found) {
+              exerciseId = found.id
+            }
+          }
+        } catch (err) {
+          console.warn(`Could not find exercise: ${ex.name}`)
+          continue
+        }
+      }
+
+      if (exerciseId) {
+        exercisesToCreate.push({
+          exerciseId,
+          order: exercisesToCreate.length + 1,
+          sets: Array.from({ length: ex.sets }, (_, i) => ({
+            setNumber: i + 1,
+            setType: i === 0 ? 'warmup' : 'working',
+            targetReps: parseInt(ex.repsRange.split('-')[1] || ex.repsRange),
+            rpe: ex.targetRPE ? parseInt(ex.targetRPE.split('-')[1] || ex.targetRPE) : 7
+          }))
+        })
+      }
+    }
+
+    if (exercisesToCreate.length === 0) {
+      alert('No exercises found. Please check that exercises are properly configured.')
+      return
+    }
 
     try {
       const res = await fetch('/api/workouts', {
@@ -132,17 +172,21 @@ export default function TodayPage() {
         body: JSON.stringify({
           name: `${data.plan.dayName} - ${new Date().toLocaleDateString()}`,
           date: new Date().toISOString(),
-          status: 'in_progress',
-          exercises
+          status: 'planned', // Create as planned first, not in_progress
+          exercises: exercisesToCreate
         })
       })
 
       const result = await res.json()
       if (result.success) {
+        // Navigate to the workout detail page where user can edit and start
         router.push(`/workouts/${result.data.id}`)
+      } else {
+        alert(result.error || 'Failed to create workout')
       }
     } catch (err) {
-      console.error('Error starting workout:', err)
+      console.error('Error creating workout:', err)
+      alert('Error creating workout. Please try again.')
     }
   }
 
@@ -266,6 +310,9 @@ export default function TodayPage() {
                   <p className="text-sm opacity-90">
                     {plan.exercises.length} exercises • ~{plan.estimatedDuration} minutes
                   </p>
+                  <p className="text-xs opacity-75 mt-1">
+                    Creates workout in Workouts section where you can edit before starting
+                  </p>
                 </div>
                 <Button 
                   size="lg"
@@ -274,7 +321,7 @@ export default function TodayPage() {
                   className="gap-2"
                 >
                   <Play className="h-5 w-5" />
-                  Start Workout
+                  Create Workout
                 </Button>
               </div>
             </CardContent>
@@ -286,19 +333,23 @@ export default function TodayPage() {
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="h-8 w-8 text-green-500" />
                   <div>
-                    <h3 className="text-lg font-semibold">Workout {workout.status === 'completed' ? 'Completed' : 'In Progress'}</h3>
+                    <h3 className="text-lg font-semibold">
+                      Workout {workout.status === 'completed' ? 'Completed' : workout.status === 'planned' ? 'Ready' : 'In Progress'}
+                    </h3>
                     <p className="text-sm text-muted-foreground">
-                      {workout.status === 'completed' ? 'Great work today!' : 'Keep it up!'}
+                      {workout.status === 'completed' 
+                        ? 'Great work today!' 
+                        : workout.status === 'planned'
+                        ? 'Ready to start when you are'
+                        : 'Keep it up!'}
                     </p>
                   </div>
                 </div>
-                {workout.status === 'in_progress' && (
-                  <Button asChild>
-                    <Link href={`/workouts/${workout.workoutId}`}>
-                      Continue <ChevronRight className="h-4 w-4 ml-1" />
-                    </Link>
-                  </Button>
-                )}
+                <Button asChild>
+                  <Link href={`/workouts/${workout.workoutId}`}>
+                    {workout.status === 'completed' ? 'View' : workout.status === 'planned' ? 'Start' : 'Continue'} <ChevronRight className="h-4 w-4 ml-1" />
+                  </Link>
+                </Button>
               </div>
             </CardContent>
           </Card>
