@@ -30,6 +30,7 @@ interface UserData {
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: BarChart3 },
+  { href: '/coach/today', label: 'Coach', icon: Sparkles },
   { href: '/workouts', label: 'Workouts', icon: Dumbbell },
   { href: '/guilds', label: 'Guilds', icon: Shield },
   { href: '/exercise-rankings', label: 'Rankings', icon: Medal },
